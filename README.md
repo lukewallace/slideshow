@@ -2,7 +2,7 @@
 
 Displays photos from USB storage. The settings screen controls timing and crossfade and can start the slideshow immediately.
 
-[Download the user and publisher guide](https://github.com/lukewallace/slideshow/raw/refs/heads/main/docs/USB-Screensaver-Guide.html) and open it in your browser for TV setup, updates, and publishing instructions.
+[Read the user and publisher guide](docs/USB-Screensaver-Guide.md) for TV setup, updates, and publishing instructions.
 
 ## Builds and distribution
 
