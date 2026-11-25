@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>USB Screensaver for Android TV — User and publisher guide</title>
+<style>
+body{font:17px/1.55 system-ui,sans-serif;color:#192b35;max-width:52rem;margin:auto;padding:2rem 1.25rem 4rem}h1,h2,h3{line-height:1.2}h1{margin-bottom:.3rem}h2{margin-top:2rem;border-bottom:1px solid #b8cacf;padding-bottom:.4rem}li{margin:.45rem 0}a{color:#07597a}code{overflow-wrap:anywhere}dt{font-weight:700;margin-top:.8rem}dd{margin-left:0}footer{margin-top:3rem;color:#425662}@media print{body{font-size:11pt;padding:0}h2,h3,dt{break-after:avoid}li,dd{break-inside:avoid}}
+</style>
+<main>
+<h1>USB Screensaver for Android TV</h1>
+<p>User and publisher guide · Version 1.3.6 · 25 November 2026</p>
+<p>The TV reads photos from your USB drive. Android controls when the screensaver starts automatically. GitHub delivers app updates when you select <strong>Check for updates</strong>. You can run the slideshow offline.</p>
+<nav><a href="#setup">Set up the TV</a> · <a href="#controls">Use the menu</a> · <a href="#updates">Update the TV</a> · <a href="#publish">Publish a version</a> · <a href="#help">Troubleshooting</a></nav>
+
+<h2 id="setup">Set up the TV</h2>
+<ol>
+<li>Download <strong>USB-Screensaver.apk</strong> from the <a href="https://github.com/lukewallace/slideshow/releases/latest">latest official release</a>. An APK is the Android installation file.</li>
+<li>Copy the APK to a USB drive. Put your pictures in a simple folder such as <code>Photos</code>. The APK and pictures can be in different folders. The app scans accessible USB storage up to five levels deep.</li>
+<li>Plug the drive into the TV. Open the APK with the TV’s file manager and choose <strong>Install</strong>. If prompted, allow that file manager to install apps. Open USB Screensaver and grant the requested photo or storage permission.</li>
+<li>Choose <strong>Turn on Screensaver Now</strong> to check your pictures. For automatic playback, select <strong>USB Screensaver</strong> in the TV’s system screensaver settings and choose an idle delay if available. The settings path varies by TV.</li>
+</ol>
+<p>Keep the drive connected during playback. The app supports JPG, JPEG, PNG, BMP, WebP and GIF still images. Video playback is outside the scope of this photo slideshow. It shuffles the photos by default and loops when it reaches the end.</p>
+
+<h2 id="controls">Use the main menu</h2>
+<dl>
+<dt>Slideshow interval</dt><dd>Sets how long each photo stays on screen. Choose 10 seconds, 30 seconds, 1 minute, 2 minutes, 3 minutes, 5 minutes or 10 minutes. The default is 10 seconds. The TV’s idle delay is a separate system setting.</dd>
+<dt>Slideshow Effect</dt><dd><strong>Crossfade</strong> blends into the next photo over 0.8 seconds. <strong>No fade</strong> switches immediately. From version 1.3.6, Crossfade is the default whenever the user has not selected an effect. An explicit selection survives an ordinary update.</dd>
+<dt>Turn on Screensaver Now</dt><dd>Opens the full-screen slideshow immediately with the same photos and preferences used for automatic playback.</dd>
+<dt>Check for updates</dt><dd>Checks the latest published release when selected. The footer below “2026” shows the version currently installed on this TV.</dd>
+</dl>
+
+<h2 id="updates">Update the TV over the internet</h2>
+<ol>
+<li>Connect the TV to the internet and select <strong>Check for updates</strong>. The app downloads the APK from the <a href="https://github.com/lukewallace/slideshow/releases/latest/download/USB-Screensaver.apk">official update address</a> and checks its package, signing identity and Android version code.</li>
+<li>If a newer verified build is available, select <strong>Install</strong>. On the first update, Android may ask you to allow USB Screensaver to install apps. Grant that permission, return to the menu and select <strong>Check for updates</strong> again.</li>
+<li>Confirm the update in Android’s installer. Reopen the app and check the version below “2026”. Your interval and effect carry over.</li>
+</ol>
+<p>USB is only needed for your photos during normal use. For an app update, the TV can download the installation file directly. Users of the early test-signed builds need a one-time uninstall and fresh installation to switch to production signing. That migration resets app preferences and leaves the USB photos intact.</p>
+
+<h2 id="publish">Publish a new version as the owner</h2>
+<p><strong>Azure signs the APK. GitHub hosts it. Android verifies it on the TV.</strong> Making a source change on GitHub alone does not deliver an update. The TV checks the APK attached to the latest public release.</p>
+<ol>
+<li><strong>Prepare the source.</strong> Make and review the change in the <a href="https://github.com/lukewallace/slideshow">slideshow repository</a>. In <code>app/build.gradle.kts</code>, set the new display version and increase <code>versionCode</code>. Version 1.3.6 uses code 17. Keep the application ID <code>com.usbscreensaver</code>.</li>
+<li><strong>Build.</strong> Build a zip-aligned unsigned release APK from that source. The repository’s Gradle release task is <code>:app:assembleRelease</code>.</li>
+<li><strong>Sign and verify.</strong> Sign in to Azure CLI as the authorized publisher. Use <code>release/Sign-AzureApk.ps1</code> with the existing vault <code>kv-slideshow-lw-sign</code> and certificate <code>slideshow-android-release</code>. The private key stays in Azure. The script checks the public fingerprint and verifies the resulting APK. Keep using the same certificate for future releases. <a href="https://github.com/lukewallace/slideshow/blob/main/release/AZURE.md">Signing instructions and prerequisites</a>.</li>
+<li><strong>Publish.</strong> On GitHub, create a release tagged with the version, such as <code>v1.3.6</code>, targeting the matching source commit. Attach the signed APK with the exact filename <strong>USB-Screensaver.apk</strong>. Publish it as the latest stable release.</li>
+<li><strong>Verify delivery.</strong> Download the file from the official update address above. Run <code>release/Verify-Apk.ps1</code> on that download and compare its SHA-256 file hash with the signed local APK. On a TV running the previous production version, select <strong>Check for updates</strong> and confirm the new footer version after installation.</li>
+</ol>
+<p>The production certificate’s public SHA-256 fingerprint is <code>68250a8bbced2cf24f169857de58328bf70f4e4d9003a585b1471b30699af3dc</code>. It identifies the signer across releases. Each new APK has its own file hash. Protect both the GitHub publisher account and the Azure accounts that can grant signing access.</p>
+
+<h2 id="help">Troubleshooting</h2>
+<dl>
+<dt>“No images found on USB” or new photos are missing</dt><dd>Use the TV’s file manager to confirm it can open a JPG from the drive. Check the app’s photo permission, try a folder close to the USB root, then stop and restart the slideshow. It rescans when it starts.</dd>
+<dt>The manual slideshow works, but the idle screensaver never starts</dt><dd>Check the TV’s selected system screensaver and idle delay. The slideshow interval only controls photo changes.</dd>
+<dt>“There is no published update available”</dt><dd>Check that the latest public GitHub release has an attachment named exactly <code>USB-Screensaver.apk</code>. The app shows this message when GitHub cannot find the download.</dd>
+<dt>“You already have the latest available version”</dt><dd>The downloaded release offers no newer version for this TV. Check the footer to see the installed version.</dd>
+<dt>A signing-certificate warning appears</dt><dd>Keep the installed app in place. Verify the official download with the repository’s verification script. Version 1.3.3 could report a mismatch when a TV omitted certificate information. For that older updater, install a verified current production APK over the existing app by USB. If Android’s installer also reports a signature conflict, stop and identify the installed build before uninstalling.</dd>
+</dl>
+</main>
+<footer>Designed by Lukasz Walaszczyk · 2026</footer>
+</html>

@@ -2,6 +2,8 @@
 
 Displays photos from USB storage. The settings screen controls timing and crossfade and can start the slideshow immediately.
 
+[Download the user and publisher guide](https://github.com/lukewallace/slideshow/raw/refs/heads/main/docs/USB-Screensaver-Guide.html) and open it in your browser for TV setup, updates, and publishing instructions.
+
 ## Builds and distribution
 
 Use Android Studio with Android SDK 34 and Gradle 8.5. Development builds use the application ID com.usbscreensaver.debug. The unsigned release build uses com.usbscreensaver. Gradle 8.5 can run :app:assembleRelease or :app:bundleRelease from the project root.
