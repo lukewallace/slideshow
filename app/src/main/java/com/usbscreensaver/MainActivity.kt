@@ -25,6 +25,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val updateButton = findViewById<Button>(R.id.checkUpdates)
+        updateButton.setOnClickListener { AppUpdate(this, updateButton).check() }
         findViewById<Button>(R.id.startSlideshow).setOnClickListener {
             startActivity(android.content.Intent(this, SlideshowActivity::class.java))
         }
