@@ -13,6 +13,7 @@ import android.widget.Button
 import java.io.File
 import java.io.IOException
 import java.net.URL
+import java.security.MessageDigest
 import java.util.UUID
 import javax.net.ssl.HttpsURLConnection
 
@@ -38,9 +39,20 @@ internal class AppUpdate(private val activity: Activity, private val button: But
                 val update = pm.getPackageArchiveInfo(file.path, flags)
                 if (update == null || update.packageName != installed.packageName)
                     throw UpdateMessage("The release does not contain a valid update for this app.")
-                val signers = signatures(installed)
-                if (signers.isEmpty() || signers != signatures(update))
-                    throw UpdateMessage("The release has a different signing certificate. For your security, installation was stopped.")
+                // Identical APKs need no installation, even if the TV omits archive signing metadata.
+                if (version(update) == version(installed) &&
+                    digest(file).contentEquals(digest(File(activity.applicationInfo.sourceDir))))
+                    throw UpdateMessage("You already have the latest available version.")
+                val current = fingerprints(installed) {
+                    pm.getPackageInfo(activity.packageName, PackageManager.GET_SIGNATURES)
+                }
+                val incoming = fingerprints(update) {
+                    pm.getPackageArchiveInfo(file.path, PackageManager.GET_SIGNATURES)
+                }
+                if (current.isEmpty() || incoming.isEmpty())
+                    throw UpdateMessage("This TV could not read the signing certificate. Installation was stopped.")
+                if (current != incoming || current != setOf(PRODUCTION_SIGNER))
+                    throw UpdateMessage("The signing certificate does not match the production release. Installation was stopped.")
                 if (version(update) <= version(installed))
                     throw UpdateMessage("You already have the latest available version.")
                 show {
@@ -73,9 +85,32 @@ internal class AppUpdate(private val activity: Activity, private val button: But
             .setMessage(text).setPositiveButton(android.R.string.ok, null).show()
     }
 
-    private fun signatures(info: PackageInfo) =
-        (if (Build.VERSION.SDK_INT >= 28) info.signingInfo?.apkContentsSigners
-         else info.signatures)?.toSet().orEmpty()
+    private companion object {
+        const val PRODUCTION_SIGNER = "68250a8bbced2cf24f169857de58328bf70f4e4d9003a585b1471b30699af3dc"
+    }
+
+    private fun fingerprints(info: PackageInfo, legacy: () -> PackageInfo?): Set<String> {
+        val modern = if (Build.VERSION.SDK_INT >= 28) info.signingInfo?.apkContentsSigners else null
+        val signers = if (!modern.isNullOrEmpty()) modern
+                      else if (Build.VERSION.SDK_INT >= 28) legacy()?.signatures else info.signatures
+        return signers.orEmpty().map { signature ->
+            MessageDigest.getInstance("SHA-256").digest(signature.toByteArray())
+                .joinToString("") { "%02x".format(java.util.Locale.ROOT, it) }
+        }.toSet()
+    }
+
+    private fun digest(file: File): ByteArray {
+        val sha = MessageDigest.getInstance("SHA-256")
+        file.inputStream().buffered().use { input ->
+            val buffer = ByteArray(32768)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                sha.update(buffer, 0, count)
+            }
+        }
+        return sha.digest()
+    }
 
     private fun version(info: PackageInfo) =
         if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()

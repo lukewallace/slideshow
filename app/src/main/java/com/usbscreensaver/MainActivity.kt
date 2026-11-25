@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.app.AlertDialog
 import android.widget.Button
+import android.widget.TextView
 import android.content.SharedPreferences
 import kotlin.math.abs
 
@@ -25,6 +26,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val versionName = packageManager.getPackageInfo(packageName, 0).versionName
+        findViewById<TextView>(R.id.designerCredit).text = getString(R.string.designer_credit, versionName)
         val updateButton = findViewById<Button>(R.id.checkUpdates)
         updateButton.setOnClickListener { AppUpdate(this, updateButton).check() }
         findViewById<Button>(R.id.startSlideshow).setOnClickListener {
