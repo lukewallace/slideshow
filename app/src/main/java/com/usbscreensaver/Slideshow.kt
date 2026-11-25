@@ -123,7 +123,7 @@ internal class Slideshow(root: FrameLayout) {
     }
 
     private fun displayBitmap(bitmap: Bitmap) {
-        if (imageView.drawable == null || !prefs.getBoolean(MainActivity.KEY_CROSSFADE, false)) {
+        if (imageView.drawable == null || !MainActivity.crossfadeEnabled(prefs)) {
             imageView.setImageBitmap(bitmap)
             return
         }

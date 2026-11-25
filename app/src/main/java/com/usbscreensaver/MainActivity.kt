@@ -14,6 +14,7 @@ class MainActivity : Activity() {
         const val PREFS_NAME = "usb_screensaver_prefs"
         const val KEY_INTERVAL = "slide_interval"
         const val KEY_CROSSFADE = "crossfade_enabled"
+        fun crossfadeEnabled(prefs: SharedPreferences) = prefs.getBoolean(KEY_CROSSFADE, true)
         const val KEY_SHUFFLE = "shuffle_enabled"
         private val intervals = listOf(10, 30, 60, 120, 180, 300, 600)
 
@@ -41,7 +42,7 @@ class MainActivity : Activity() {
             prefs.edit().putInt(KEY_INTERVAL, intervals[index]).apply()
         }
         bindChoice(R.id.effectButton, R.string.effect_label, R.array.effect_options,
-            if (prefs.getBoolean(KEY_CROSSFADE, false)) 1 else 0) { index ->
+            if (crossfadeEnabled(prefs)) 1 else 0) { index ->
             prefs.edit().putBoolean(KEY_CROSSFADE, index == 1).apply()
         }
         if (android.os.Build.VERSION.SDK_INT >= 23) {

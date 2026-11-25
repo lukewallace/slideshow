@@ -11,8 +11,8 @@ android {
         applicationId = "com.usbscreensaver"
         minSdk = 21
         targetSdk = 34
-        versionCode = 16
-        versionName = "1.3.5"
+        versionCode = 17
+        versionName = "1.3.6"
     }
 
     buildTypes {
