@@ -57,7 +57,7 @@ class MainActivity : Activity() {
         applyMenuBrightness(SlideBrightness.read(prefs))
         findViewById<Button>(R.id.advancedSettings).setOnClickListener {
             openPanel(it as Button, R.string.advanced_settings)
-            showAdvancedSettings(prefs)
+            option(getString(R.string.cancel)) { closePanel() }.requestFocus()
         }
 
         bindChoice(R.id.intervalButton, R.string.interval_label, R.array.interval_options,
@@ -109,6 +109,14 @@ class MainActivity : Activity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val slider = currentFocus as? SeekBar
+        if (slider?.id == R.id.brightnessSlider &&
+            (event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT || event.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                slider.incrementProgressBy(if (event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1)
+            }
+            return true
+        }
         if (opener != null && event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
             if (event.action == KeyEvent.ACTION_UP) closePanel()
             return true
@@ -143,12 +151,12 @@ class MainActivity : Activity() {
             setTextColor(android.graphics.Color.WHITE)
         })
         val primary = actionLabel?.let { option(it, action) }
-        val back = option(getString(android.R.string.cancel)) { closePanel() }
+        val back = option(getString(R.string.cancel)) { closePanel() }
         (primary ?: back).requestFocus()
     }
 
-    private fun showAdvancedSettings(prefs: SharedPreferences) {
-        val view = layoutInflater.inflate(R.layout.advanced_settings, content, false)
+    private fun addBrightnessControls() {
+        val view = layoutInflater.inflate(R.layout.brightness_slider, content, false)
         content.addView(view)
         val label = view.findViewById<TextView>(R.id.brightnessLabel)
         val slider = view.findViewById<SeekBar>(R.id.brightnessSlider)
@@ -167,14 +175,11 @@ class MainActivity : Activity() {
             override fun onStartTrackingTouch(bar: SeekBar) {}
             override fun onStopTrackingTouch(bar: SeekBar) {}
         })
-        slider.isFocusable = false
-        option("Decrease brightness") { slider.progress -= 1 }.requestFocus()
-        option("Increase brightness") { slider.progress += 1 }
         option(getString(android.R.string.ok)) {
             SlideBrightness.save(prefs, selectedPercent())
             closePanel()
         }
-        option(getString(android.R.string.cancel)) { closePanel() }
+        option(getString(R.string.cancel)) { closePanel() }
     }
 
     private fun bindChoice(buttonId: Int, title: Int, options: Int, initial: Int, save: (Int) -> Unit) {
@@ -191,6 +196,7 @@ class MainActivity : Activity() {
                 }
                 if (index == selected) choice.requestFocus()
             }
+            if (buttonId == R.id.effectButton) addBrightnessControls()
         }
     }
 }

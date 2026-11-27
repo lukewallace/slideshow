@@ -23,6 +23,7 @@
     <string name="start_slideshow">Turn on Screensaver Now</string>
     <string name="check_updates">Check for updates</string>
     <string name="advanced_settings">Advanced settings</string>
+    <string name="cancel">Cancel</string>
     <string name="brightness_value">Brightness · %1$d%%</string>
     <string name="checking_updates">Checking for updates…</string>
 </resources>
