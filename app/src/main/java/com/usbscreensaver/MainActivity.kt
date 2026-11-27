@@ -56,7 +56,6 @@ class MainActivity : Activity() {
                 updatePrompt(getString(R.string.checking_updates))
                 check.check()
             }.requestFocus()
-            option(getString(R.string.cancel)) { closePanel() }
         }
 
         bindChoice(R.id.intervalButton, R.string.interval_label, R.array.interval_options,
@@ -178,7 +177,7 @@ class MainActivity : Activity() {
             SlideBrightness.save(prefs, selectedPercent())
             closePanel()
         }
-        option(getString(R.string.cancel)) { closePanel() }
+        slider.requestFocus()
     }
 
     private fun bindChoice(buttonId: Int, title: Int, options: Int, initial: Int, save: (Int) -> Unit) {
@@ -187,15 +186,16 @@ class MainActivity : Activity() {
         var selected = initial
         button.setOnClickListener {
             openPanel(button, title)
+            val hasBrightness = buttonId == R.id.effectButton
+            if (hasBrightness) addBrightnessControls()
             labels.forEachIndexed { index, label ->
                 val choice = option(if (index == selected) "✓  $label" else label) {
                     save(index)
                     selected = index
                     closePanel()
                 }
-                if (index == selected) choice.requestFocus()
+                if (!hasBrightness && index == selected) choice.requestFocus()
             }
-            if (buttonId == R.id.effectButton) addBrightnessControls()
         }
     }
 }
