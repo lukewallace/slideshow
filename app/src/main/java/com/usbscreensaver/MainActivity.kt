@@ -4,7 +4,6 @@ import android.app.Activity
 import android.os.Bundle
 import android.app.AlertDialog
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.SeekBar
 import android.view.View
 import android.view.WindowManager
@@ -61,24 +60,23 @@ class MainActivity : Activity() {
 
     private fun applyMenuBrightness(percent: Int) {
         SlideBrightness.applyTo(findViewById(R.id.menuPhoto), percent)
-        // Keep the remote focus indicator and controls visible even with the photo at 0%.
+        // Keep the remote focus indicator and controls visible at low brightness.
         findViewById<View>(R.id.menuPanel).alpha = percent.coerceAtLeast(40) / 100f
     }
 
     private fun showAdvancedSettings(prefs: SharedPreferences) {
         val view = layoutInflater.inflate(R.layout.advanced_settings, null)
-        val preview = view.findViewById<ImageView>(R.id.brightnessPreview)
         val label = view.findViewById<TextView>(R.id.brightnessLabel)
         val slider = view.findViewById<SeekBar>(R.id.brightnessSlider)
+        fun selectedPercent() = SlideBrightness.MIN + slider.progress * SlideBrightness.STEP
         fun updatePreview() {
-            val percent = slider.progress * SlideBrightness.STEP
+            val percent = selectedPercent()
             label.text = getString(R.string.brightness_value, percent)
-            SlideBrightness.applyTo(preview, percent)
             applyMenuBrightness(percent)
         }
-        slider.max = 100 / SlideBrightness.STEP
+        slider.max = (100 - SlideBrightness.MIN) / SlideBrightness.STEP
         slider.keyProgressIncrement = 1
-        slider.progress = SlideBrightness.read(prefs) / SlideBrightness.STEP
+        slider.progress = (SlideBrightness.read(prefs) - SlideBrightness.MIN) / SlideBrightness.STEP
         updatePreview()
         slider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(bar: SeekBar, value: Int, fromUser: Boolean) = updatePreview()
@@ -90,7 +88,7 @@ class MainActivity : Activity() {
             .setView(view)
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                SlideBrightness.save(prefs, slider.progress * SlideBrightness.STEP)
+                SlideBrightness.save(prefs, selectedPercent())
             }
             .setOnDismissListener { applyMenuBrightness(SlideBrightness.read(prefs)) }
             .create()

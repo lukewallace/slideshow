@@ -7,12 +7,13 @@ import android.widget.ImageView
 
 internal object SlideBrightness {
     const val STEP = 5
+    const val MIN = 10
     private const val KEY = "slide_brightness_percent"
 
-    fun read(prefs: SharedPreferences) = prefs.getInt(KEY, 100).coerceIn(0, 100)
+    fun read(prefs: SharedPreferences) = prefs.getInt(KEY, 100).coerceIn(MIN, 100)
 
     fun save(prefs: SharedPreferences, percent: Int) {
-        prefs.edit().putInt(KEY, percent).apply()
+        prefs.edit().putInt(KEY, percent.coerceIn(MIN, 100)).apply()
     }
 
     fun applyTo(image: ImageView, percent: Int) {
