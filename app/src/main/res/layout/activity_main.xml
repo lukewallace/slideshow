@@ -37,14 +37,12 @@
                     android:textSize="24sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF" />
+                <Button style="@style/MenuButton" android:id="@+id/startSlideshow"
+                    android:text="@string/start_slideshow" />
                 <Button style="@style/MenuButton" android:id="@+id/intervalButton"
                     android:text="@string/interval_label" />
                 <Button style="@style/MenuButton" android:id="@+id/effectButton"
                     android:text="@string/effect_label" />
-                <Button style="@style/MenuButton" android:id="@+id/startSlideshow"
-                    android:text="@string/start_slideshow" />
-                <Button style="@style/MenuButton" android:id="@+id/checkUpdates"
-                    android:text="@string/check_updates" />
                 <Button style="@style/MenuButton" android:id="@+id/advancedSettings"
                     android:text="@string/advanced_settings" />
                 <Space

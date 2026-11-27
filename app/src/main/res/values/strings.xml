@@ -15,7 +15,7 @@
         <item>10 minutes</item>
     </string-array>
     <string name="designer_credit">Designed by Lukasz Walaszczyk\n2026\nVersion %1$s</string>
-    <string name="effect_label">Slideshow Effect</string>
+    <string name="effect_label">Slideshow effects</string>
     <string-array name="effect_options">
         <item>No Effects</item>
         <item>Crossfade</item>

@@ -41,14 +41,6 @@ class MainActivity : Activity() {
         content = findViewById(R.id.submenuContent)
         val versionName = packageManager.getPackageInfo(packageName, 0).versionName
         findViewById<TextView>(R.id.designerCredit).text = getString(R.string.designer_credit, versionName)
-        val updateButton = findViewById<Button>(R.id.checkUpdates)
-        updateButton.setOnClickListener {
-            openPanel(updateButton, R.string.check_updates)
-            val check = AppUpdate(this)
-            updater = check
-            updatePrompt(getString(R.string.checking_updates))
-            check.check()
-        }
         findViewById<Button>(R.id.startSlideshow).setOnClickListener {
             closePanel()
             startActivity(android.content.Intent(this, SlideshowActivity::class.java))
@@ -57,7 +49,14 @@ class MainActivity : Activity() {
         applyMenuBrightness(SlideBrightness.read(prefs))
         findViewById<Button>(R.id.advancedSettings).setOnClickListener {
             openPanel(it as Button, R.string.advanced_settings)
-            option(getString(R.string.cancel)) { closePanel() }.requestFocus()
+            option(getString(R.string.check_updates)) {
+                findViewById<TextView>(R.id.submenuHeading).setText(R.string.check_updates)
+                val check = AppUpdate(this)
+                updater = check
+                updatePrompt(getString(R.string.checking_updates))
+                check.check()
+            }.requestFocus()
+            option(getString(R.string.cancel)) { closePanel() }
         }
 
         bindChoice(R.id.intervalButton, R.string.interval_label, R.array.interval_options,
