@@ -4,6 +4,8 @@ import android.app.Activity
 import android.os.Bundle
 import android.app.AlertDialog
 import android.widget.Button
+import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.TextView
 import android.content.SharedPreferences
 import kotlin.math.abs
@@ -31,17 +33,12 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.designerCredit).text = getString(R.string.designer_credit, versionName)
         val updateButton = findViewById<Button>(R.id.checkUpdates)
         updateButton.setOnClickListener { AppUpdate(this, updateButton).check() }
-        findViewById<Button>(R.id.advancedSettings).setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle(R.string.advanced_settings)
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
-        }
         findViewById<Button>(R.id.startSlideshow).setOnClickListener {
             startActivity(android.content.Intent(this, SlideshowActivity::class.java))
         }
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        findViewById<Button>(R.id.advancedSettings).setOnClickListener { showAdvancedSettings(prefs) }
 
         bindChoice(R.id.intervalButton, R.string.interval_label, R.array.interval_options,
             intervals.indexOf(intervalSeconds(prefs))) { index ->
@@ -57,6 +54,35 @@ class MainActivity : Activity() {
             if (checkSelfPermission(permission) != android.content.pm.PackageManager.PERMISSION_GRANTED)
                 requestPermissions(arrayOf(permission), 1)
         }
+    }
+
+    private fun showAdvancedSettings(prefs: SharedPreferences) {
+        val view = layoutInflater.inflate(R.layout.advanced_settings, null)
+        val preview = view.findViewById<ImageView>(R.id.brightnessPreview)
+        val label = view.findViewById<TextView>(R.id.brightnessLabel)
+        val slider = view.findViewById<SeekBar>(R.id.brightnessSlider)
+        fun updatePreview() {
+            val percent = slider.progress * SlideBrightness.STEP
+            label.text = getString(R.string.brightness_value, percent)
+            SlideBrightness.applyTo(preview, percent)
+        }
+        slider.max = 100 / SlideBrightness.STEP
+        slider.keyProgressIncrement = 1
+        slider.progress = SlideBrightness.read(prefs) / SlideBrightness.STEP
+        updatePreview()
+        slider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(bar: SeekBar, value: Int, fromUser: Boolean) = updatePreview()
+            override fun onStartTrackingTouch(bar: SeekBar) {}
+            override fun onStopTrackingTouch(bar: SeekBar) {}
+        })
+        AlertDialog.Builder(this)
+            .setTitle(R.string.advanced_settings)
+            .setView(view)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                SlideBrightness.save(prefs, slider.progress * SlideBrightness.STEP)
+            }.show()
+        slider.requestFocus()
     }
 
     private fun bindChoice(buttonId: Int, title: Int, options: Int, initial: Int, save: (Int) -> Unit) {

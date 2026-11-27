@@ -27,6 +27,9 @@ internal class Slideshow(root: FrameLayout) {
     }
 
     fun start() {
+        val brightness = SlideBrightness.read(prefs)
+        SlideBrightness.applyTo(imageView, brightness)
+        SlideBrightness.applyTo(incoming, brightness)
         loadImages()
         startSlideshow()
     }
