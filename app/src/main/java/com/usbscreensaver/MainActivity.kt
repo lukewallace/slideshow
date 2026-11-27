@@ -17,6 +17,7 @@ class MainActivity : Activity() {
     private lateinit var panel: ScrollView
     private lateinit var content: LinearLayout
     private var opener: Button? = null
+    private var returnFromTransition: (() -> Unit)? = null
     private var updater: AppUpdate? = null
     private val prefs by lazy { getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
 
@@ -58,13 +59,17 @@ class MainActivity : Activity() {
             }.requestFocus()
         }
 
-        bindChoice(R.id.intervalButton, R.string.interval_label, R.array.interval_options,
-            intervals.indexOf(intervalSeconds(prefs))) { index ->
-            prefs.edit().putInt(KEY_INTERVAL, intervals[index]).apply()
+        findViewById<Button>(R.id.intervalButton).setOnClickListener {
+            openPanel(it as Button, R.string.interval_label)
+            addChoices(R.array.interval_options, intervals.indexOf(intervalSeconds(prefs))) { index ->
+                prefs.edit().putInt(KEY_INTERVAL, intervals[index]).apply()
+                closePanel()
+            }
         }
-        bindChoice(R.id.effectButton, R.string.effect_label, R.array.effect_options,
-            if (crossfadeEnabled(prefs)) 1 else 0) { index ->
-            prefs.edit().putBoolean(KEY_CROSSFADE, index == 1).apply()
+        findViewById<Button>(R.id.effectButton).setOnClickListener {
+            openPanel(it as Button, R.string.effect_label)
+            addBrightnessControls()
+            option(getString(R.string.photo_transition)) { showTransitions() }
         }
         if (android.os.Build.VERSION.SDK_INT >= 23) {
             val permission = if (android.os.Build.VERSION.SDK_INT >= 33)
@@ -97,6 +102,7 @@ class MainActivity : Activity() {
     internal fun closePanel() {
         val button = opener ?: return
         opener = null
+        returnFromTransition = null
         updater?.dismiss()
         updater = null
         panel.visibility = View.GONE
@@ -116,14 +122,14 @@ class MainActivity : Activity() {
             return true
         }
         if (opener != null && event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-            if (event.action == KeyEvent.ACTION_UP) closePanel()
+            if (event.action == KeyEvent.ACTION_UP) returnFromTransition?.invoke() ?: closePanel()
             return true
         }
         return super.dispatchKeyEvent(event)
     }
 
     override fun onBackPressed() {
-        if (opener != null) closePanel() else super.onBackPressed()
+        if (opener != null) returnFromTransition?.invoke() ?: closePanel() else super.onBackPressed()
     }
 
     override fun onDestroy() {
@@ -180,22 +186,30 @@ class MainActivity : Activity() {
         slider.requestFocus()
     }
 
-    private fun bindChoice(buttonId: Int, title: Int, options: Int, initial: Int, save: (Int) -> Unit) {
-        val button = findViewById<Button>(buttonId)
-        val labels = resources.getStringArray(options)
-        var selected = initial
-        button.setOnClickListener {
-            openPanel(button, title)
-            val hasBrightness = buttonId == R.id.effectButton
-            if (hasBrightness) addBrightnessControls()
-            labels.forEachIndexed { index, label ->
-                val choice = option(if (index == selected) "✓  $label" else label) {
-                    save(index)
-                    selected = index
-                    closePanel()
-                }
-                if (!hasBrightness && index == selected) choice.requestFocus()
-            }
+    private fun showTransitions() {
+        // Keep the brightness controls attached so their pending adjustment survives navigation.
+        val parentCount = content.childCount
+        val transitionButton = content.getChildAt(parentCount - 1)
+        for (i in 1 until parentCount) content.getChildAt(i).visibility = View.GONE
+        val heading = findViewById<TextView>(R.id.submenuHeading)
+        heading.setText(R.string.photo_transition)
+        returnFromTransition = {
+            returnFromTransition = null
+            content.removeViews(parentCount, content.childCount - parentCount)
+            for (i in 1 until parentCount) content.getChildAt(i).visibility = View.VISIBLE
+            heading.setText(R.string.effect_label)
+            transitionButton.requestFocus()
+        }
+        addChoices(R.array.effect_options, if (crossfadeEnabled(prefs)) 0 else 1) { index ->
+            prefs.edit().putBoolean(KEY_CROSSFADE, index == 0).apply()
+            returnFromTransition?.invoke()
+        }
+    }
+
+    private fun addChoices(options: Int, selected: Int, save: (Int) -> Unit) {
+        resources.getStringArray(options).forEachIndexed { index, label ->
+            val choice = option(if (index == selected) "✓  $label" else label) { save(index) }
+            if (index == selected) choice.requestFocus()
         }
     }
 }
