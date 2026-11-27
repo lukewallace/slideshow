@@ -31,6 +31,12 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.designerCredit).text = getString(R.string.designer_credit, versionName)
         val updateButton = findViewById<Button>(R.id.checkUpdates)
         updateButton.setOnClickListener { AppUpdate(this, updateButton).check() }
+        findViewById<Button>(R.id.advancedSettings).setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.advanced_settings)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
         findViewById<Button>(R.id.startSlideshow).setOnClickListener {
             startActivity(android.content.Intent(this, SlideshowActivity::class.java))
         }
