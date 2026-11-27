@@ -27,7 +27,7 @@ class MainActivity : Activity() {
         const val KEY_CROSSFADE = "crossfade_enabled"
         fun crossfadeEnabled(prefs: SharedPreferences) = prefs.getBoolean(KEY_CROSSFADE, true)
         const val KEY_SHUFFLE = "shuffle_enabled"
-        private val intervals = listOf(10, 30, 60, 120, 180, 300, 600)
+        private val intervals = listOf(10, 30, 60, 120, 180, 300, 600, 1800)
 
         fun intervalSeconds(prefs: SharedPreferences): Int {
             val saved = prefs.getInt(KEY_INTERVAL, 10)
@@ -175,19 +175,17 @@ class MainActivity : Activity() {
         slider.progress = (SlideBrightness.read(prefs) - SlideBrightness.MIN) / SlideBrightness.STEP
         updatePreview()
         slider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(bar: SeekBar, value: Int, fromUser: Boolean) = updatePreview()
+            override fun onProgressChanged(bar: SeekBar, value: Int, fromUser: Boolean) {
+                SlideBrightness.save(prefs, selectedPercent())
+                updatePreview()
+            }
             override fun onStartTrackingTouch(bar: SeekBar) {}
             override fun onStopTrackingTouch(bar: SeekBar) {}
         })
-        option(getString(android.R.string.ok)) {
-            SlideBrightness.save(prefs, selectedPercent())
-            closePanel()
-        }
         slider.requestFocus()
     }
 
     private fun showTransitions() {
-        // Keep the brightness controls attached so their pending adjustment survives navigation.
         val parentCount = content.childCount
         val transitionButton = content.getChildAt(parentCount - 1)
         for (i in 1 until parentCount) content.getChildAt(i).visibility = View.GONE
