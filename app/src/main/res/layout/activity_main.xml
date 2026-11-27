@@ -20,7 +20,7 @@
             android:layout_weight="39"
             android:layout_height="match_parent"
             android:fillViewport="true"
-            android:background="#B51F2326">
+            android:background="@color/menu_surface">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -70,6 +70,29 @@
                     android:gravity="center"
                     android:textSize="14sp"
                     android:textColor="#FFFFFF" />
+            </LinearLayout>
+        </ScrollView>
+        <ScrollView
+            android:id="@+id/submenuPanel"
+            android:layout_width="0dp"
+            android:layout_weight="30"
+            android:layout_height="match_parent"
+            android:background="@color/menu_surface"
+            android:visibility="gone">
+            <LinearLayout
+                android:id="@+id/submenuContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/submenuHeading"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
             </LinearLayout>
         </ScrollView>
     </LinearLayout>

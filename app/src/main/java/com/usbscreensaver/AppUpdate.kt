@@ -1,7 +1,5 @@
 package com.usbscreensaver
 
-import android.app.Activity
-import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -9,7 +7,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.widget.Button
 import java.io.File
 import java.io.IOException
 import java.net.URL
@@ -17,12 +14,16 @@ import java.security.MessageDigest
 import java.util.UUID
 import javax.net.ssl.HttpsURLConnection
 
-internal class AppUpdate(private val activity: Activity, private val button: Button) {
+internal class AppUpdate(private val activity: MainActivity) {
     private val pm = activity.packageManager
+    private var pendingFile: File? = null
+
+    fun dismiss() {
+        pendingFile?.delete()
+        pendingFile = null
+    }
 
     fun check() {
-        button.isEnabled = false
-        button.setText(R.string.checking_updates)
         Thread {
             val directory = File(activity.cacheDir, "updates")
             val file = File(directory, "${UUID.randomUUID()}.apk")
@@ -55,12 +56,14 @@ internal class AppUpdate(private val activity: Activity, private val button: But
                     throw UpdateMessage("The signing certificate does not match the production release. Installation was stopped.")
                 if (version(update) <= version(installed))
                     throw UpdateMessage("You already have the latest available version.")
-                show {
-                    AlertDialog.Builder(activity).setTitle("Update available")
-                        .setMessage("Install USB Screensaver ${update.versionName} on this TV?")
-                        .setNegativeButton("Cancel") { _, _ -> file.delete() }
-                        .setOnCancelListener { file.delete() }
-                        .setPositiveButton("Install") { _, _ -> install(file) }.show()
+                activity.runOnUiThread {
+                    if (activity.isChecking(this)) {
+                        pendingFile = file
+                        activity.updatePrompt("Install USB Screensaver ${update.versionName} on this TV?", "Install") {
+                            pendingFile = null
+                            install(file)
+                        }
+                    } else file.delete()
                 }
             } catch (e: Exception) {
                 file.delete()
@@ -71,18 +74,13 @@ internal class AppUpdate(private val activity: Activity, private val button: But
     }
 
     private fun show(action: () -> Unit) = activity.runOnUiThread {
-        if (!activity.isFinishing && !activity.isDestroyed) {
-            button.isEnabled = true
-            button.setText(R.string.check_updates)
-            action()
-        }
+        if (activity.isChecking(this)) action()
     }
 
     private class UpdateMessage(message: String) : Exception(message)
 
     private fun message(text: String) {
-        AlertDialog.Builder(activity).setTitle(R.string.check_updates)
-            .setMessage(text).setPositiveButton(android.R.string.ok, null).show()
+        activity.updatePrompt(text)
     }
 
     private companion object {
@@ -157,12 +155,9 @@ internal class AppUpdate(private val activity: Activity, private val button: But
     private fun install(file: File) {
         try {
             if (Build.VERSION.SDK_INT >= 26 && !pm.canRequestPackageInstalls()) {
-                AlertDialog.Builder(activity).setTitle("Allow app updates")
-                    .setMessage("Allow USB Screensaver to install apps in TV settings. Then return and select Check for updates again.")
-                    .setNegativeButton("Cancel", null)
-                    .setPositiveButton("Open settings") { _, _ ->
-                        open(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + activity.packageName)))
-                    }.show()
+                activity.updatePrompt("Allow USB Screensaver to install apps in TV settings. Then return and select Check for updates again.", "Open settings") {
+                    open(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + activity.packageName)))
+                }
                 file.delete()
                 return
             }
@@ -178,6 +173,7 @@ internal class AppUpdate(private val activity: Activity, private val button: But
     private fun open(intent: Intent) {
         try {
             activity.startActivity(intent)
+            activity.closePanel()
         } catch (_: ActivityNotFoundException) {
             message("This TV has no handler for this action. You can install the official APK by USB.")
         } catch (_: SecurityException) {
