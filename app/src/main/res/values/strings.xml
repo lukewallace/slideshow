@@ -3,7 +3,7 @@
     <string name="app_name">USB Screensaver</string>
     <string name="settings_title">USB Screensaver Settings</string>
     <string name="no_images">No images found on USB</string>
-    <string name="interval_label">Slideshow interval</string>
+    <string name="interval_label">Slideshow Interval</string>
     <string name="interval_seconds">Slide interval: %d seconds</string>
     <string-array name="interval_options">
         <item>10 seconds</item>

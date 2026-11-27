@@ -61,7 +61,7 @@ class MainActivity : Activity() {
         }
 
         bindChoice(R.id.intervalButton, R.string.interval_label, R.array.interval_options,
-            intervals.indexOf(intervalSeconds(prefs))) { index ->
+            intervals.indexOf(intervalSeconds(prefs)), showValue = false) { index ->
             prefs.edit().putInt(KEY_INTERVAL, intervals[index]).apply()
         }
         bindChoice(R.id.effectButton, R.string.effect_label, R.array.effect_options,
@@ -177,18 +177,18 @@ class MainActivity : Activity() {
         option(getString(android.R.string.cancel)) { closePanel() }
     }
 
-    private fun bindChoice(buttonId: Int, title: Int, options: Int, initial: Int, save: (Int) -> Unit) {
+    private fun bindChoice(buttonId: Int, title: Int, options: Int, initial: Int, showValue: Boolean = true, save: (Int) -> Unit) {
         val button = findViewById<Button>(buttonId)
         val labels = resources.getStringArray(options)
         var selected = initial
-        button.text = labels[selected]
+        if (showValue) button.text = labels[selected]
         button.setOnClickListener {
             openPanel(button, title)
             labels.forEachIndexed { index, label ->
                 val choice = option(if (index == selected) "✓  $label" else label) {
                     save(index)
                     selected = index
-                    button.text = labels[index]
+                    if (showValue) button.text = labels[index]
                     closePanel()
                 }
                 if (index == selected) choice.requestFocus()
