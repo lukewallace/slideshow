@@ -39,14 +39,8 @@
                     android:textColor="#FFFFFF" />
                 <Button style="@style/MenuButton" android:id="@+id/intervalButton"
                     android:text="@string/interval_label" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:labelFor="@+id/effectButton"
-                    android:text="@string/effect_label"
-                    android:textSize="15sp"
-                    android:textColor="#FFFFFF" />
-                <Button style="@style/MenuButton" android:id="@id/effectButton" />
+                <Button style="@style/MenuButton" android:id="@+id/effectButton"
+                    android:text="@string/effect_label" />
                 <Button style="@style/MenuButton" android:id="@+id/startSlideshow"
                     android:text="@string/start_slideshow" />
                 <Button style="@style/MenuButton" android:id="@+id/checkUpdates"
