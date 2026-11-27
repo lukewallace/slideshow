@@ -23,7 +23,7 @@
     <string name="start_slideshow">Turn on Screensaver Now</string>
     <string name="check_updates">Check for updates</string>
     <string name="advanced_settings">Advanced settings</string>
-    <string name="brightness_value">Slideshow brightness · %1$d%%</string>
+    <string name="brightness_value">Menu and slideshow brightness · %1$d%%</string>
     <string name="checking_updates">Checking for updates…</string>
 </resources>
 

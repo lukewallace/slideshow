@@ -2,6 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <ImageView
+        android:id="@+id/menuPhoto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/menu_cliff"
@@ -14,6 +15,7 @@
         android:orientation="horizontal"
         android:weightSum="100">
         <ScrollView
+            android:id="@+id/menuPanel"
             android:layout_width="0dp"
             android:layout_weight="39"
             android:layout_height="match_parent"

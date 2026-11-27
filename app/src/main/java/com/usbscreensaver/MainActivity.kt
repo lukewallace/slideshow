@@ -6,6 +6,8 @@ import android.app.AlertDialog
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
+import android.view.View
+import android.view.WindowManager
 import android.widget.TextView
 import android.content.SharedPreferences
 import kotlin.math.abs
@@ -38,6 +40,7 @@ class MainActivity : Activity() {
         }
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        applyMenuBrightness(SlideBrightness.read(prefs))
         findViewById<Button>(R.id.advancedSettings).setOnClickListener { showAdvancedSettings(prefs) }
 
         bindChoice(R.id.intervalButton, R.string.interval_label, R.array.interval_options,
@@ -56,6 +59,12 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun applyMenuBrightness(percent: Int) {
+        SlideBrightness.applyTo(findViewById(R.id.menuPhoto), percent)
+        // Keep the remote focus indicator and controls visible even with the photo at 0%.
+        findViewById<View>(R.id.menuPanel).alpha = percent.coerceAtLeast(40) / 100f
+    }
+
     private fun showAdvancedSettings(prefs: SharedPreferences) {
         val view = layoutInflater.inflate(R.layout.advanced_settings, null)
         val preview = view.findViewById<ImageView>(R.id.brightnessPreview)
@@ -65,6 +74,7 @@ class MainActivity : Activity() {
             val percent = slider.progress * SlideBrightness.STEP
             label.text = getString(R.string.brightness_value, percent)
             SlideBrightness.applyTo(preview, percent)
+            applyMenuBrightness(percent)
         }
         slider.max = 100 / SlideBrightness.STEP
         slider.keyProgressIncrement = 1
@@ -75,13 +85,17 @@ class MainActivity : Activity() {
             override fun onStartTrackingTouch(bar: SeekBar) {}
             override fun onStopTrackingTouch(bar: SeekBar) {}
         })
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.advanced_settings)
             .setView(view)
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 SlideBrightness.save(prefs, slider.progress * SlideBrightness.STEP)
-            }.show()
+            }
+            .setOnDismissListener { applyMenuBrightness(SlideBrightness.read(prefs)) }
+            .create()
+        dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        dialog.show()
         slider.requestFocus()
     }
 
