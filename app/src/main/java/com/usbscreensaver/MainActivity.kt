@@ -17,7 +17,7 @@ class MainActivity : Activity() {
     private lateinit var panel: ScrollView
     private lateinit var content: LinearLayout
     private var opener: Button? = null
-    private var returnFromTransition: (() -> Unit)? = null
+    private var returnToEffects: (() -> Unit)? = null
     private var galleryRequest: GalleryRequest? = null
     private var updater: AppUpdate? = null
     private val prefs by lazy { getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
@@ -85,17 +85,19 @@ class MainActivity : Activity() {
             }.requestFocus()
         }
 
-        findViewById<Button>(R.id.intervalButton).setOnClickListener {
-            openPanel(it as Button, R.string.interval_label)
-            addChoices(R.array.interval_options, intervals.indexOf(intervalSeconds(prefs))) { index ->
-                prefs.edit().putInt(KEY_INTERVAL, intervals[index]).apply()
-                closePanel()
-            }
-        }
         findViewById<Button>(R.id.effectButton).setOnClickListener {
             openPanel(it as Button, R.string.effect_label)
             addBrightnessControls()
-            option(getString(R.string.photo_transition)) { showTransitions() }
+            option(getString(R.string.photo_transition)) { button ->
+                showEffectChoices(button, R.array.effect_options, if (crossfadeEnabled(prefs)) 0 else 1) { index ->
+                    prefs.edit().putBoolean(KEY_CROSSFADE, index == 0).apply()
+                }
+            }
+            option(getString(R.string.interval_label)) { button ->
+                showEffectChoices(button, R.array.interval_options, intervals.indexOf(intervalSeconds(prefs))) { index ->
+                    prefs.edit().putInt(KEY_INTERVAL, intervals[index]).apply()
+                }
+            }
         }
         if (!prefs.getBoolean(KEY_GALLERY, false)) requestUsbPermission()
     }
@@ -132,7 +134,7 @@ class MainActivity : Activity() {
     internal fun closePanel() {
         val button = opener ?: return
         opener = null
-        returnFromTransition = null
+        returnToEffects = null
         galleryRequest?.close()
         galleryRequest = null
         updater?.dismiss()
@@ -154,14 +156,14 @@ class MainActivity : Activity() {
             return true
         }
         if (opener != null && event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-            if (event.action == KeyEvent.ACTION_UP) returnFromTransition?.invoke() ?: closePanel()
+            if (event.action == KeyEvent.ACTION_UP) returnToEffects?.invoke() ?: closePanel()
             return true
         }
         return super.dispatchKeyEvent(event)
     }
 
     override fun onBackPressed() {
-        if (opener != null) returnFromTransition?.invoke() ?: closePanel() else super.onBackPressed()
+        if (opener != null) returnToEffects?.invoke() ?: closePanel() else super.onBackPressed()
     }
 
     override fun onDestroy() {
@@ -171,10 +173,10 @@ class MainActivity : Activity() {
         super.onDestroy()
     }
 
-    private fun option(label: String, action: () -> Unit): Button {
+    private fun option(label: String, action: (Button) -> Unit): Button {
         val button = layoutInflater.inflate(R.layout.submenu_button, content, false) as Button
         button.text = label
-        button.setOnClickListener { action() }
+        button.setOnClickListener { action(button) }
         content.addView(button)
         return button
     }
@@ -188,7 +190,7 @@ class MainActivity : Activity() {
             textSize = 16f
             setTextColor(android.graphics.Color.WHITE)
         })
-        val primary = actionLabel?.let { option(it, action) }
+        val primary = actionLabel?.let { option(it) { action() } }
         val back = option(getString(R.string.cancel)) { closePanel() }
         (primary ?: back).requestFocus()
     }
@@ -219,22 +221,21 @@ class MainActivity : Activity() {
         slider.requestFocus()
     }
 
-    private fun showTransitions() {
+    private fun showEffectChoices(button: Button, options: Int, selected: Int, save: (Int) -> Unit) {
         val parentCount = content.childCount
-        val transitionButton = content.getChildAt(parentCount - 1)
         for (i in 1 until parentCount) content.getChildAt(i).visibility = View.GONE
         val heading = findViewById<TextView>(R.id.submenuHeading)
-        heading.setText(R.string.photo_transition)
-        returnFromTransition = {
-            returnFromTransition = null
+        heading.text = button.text
+        returnToEffects = {
+            returnToEffects = null
             content.removeViews(parentCount, content.childCount - parentCount)
             for (i in 1 until parentCount) content.getChildAt(i).visibility = View.VISIBLE
             heading.setText(R.string.effect_label)
-            transitionButton.requestFocus()
+            button.requestFocus()
         }
-        addChoices(R.array.effect_options, if (crossfadeEnabled(prefs)) 0 else 1) { index ->
-            prefs.edit().putBoolean(KEY_CROSSFADE, index == 0).apply()
-            returnFromTransition?.invoke()
+        addChoices(options, selected) { index ->
+            save(index)
+            returnToEffects?.invoke()
         }
     }
 

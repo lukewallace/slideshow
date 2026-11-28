@@ -16,8 +16,8 @@ android {
         applicationId = "com.usbscreensaver"
         minSdk = 21
         targetSdk = 34
-        versionCode = 34
-        versionName = "1.3.23"
+        versionCode = 35
+        versionName = "1.3.24"
         buildConfigField("String", "GALLERY_BUCKET", "\"slideshow-864f5.firebasestorage.app\"")
         buildConfigField("boolean", "PLAY_DISTRIBUTION", playDistribution.toString())
 
