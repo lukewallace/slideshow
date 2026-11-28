@@ -1,78 +1,72 @@
 # USB Screensaver for Android TV
 
-User and publisher guide · Version 1.3.6 · 25 November 2026
+User and publisher guide · Version 1.3.23 · 28 November 2026
 
-The TV reads photos from your USB drive. Android controls when the screensaver starts automatically. GitHub delivers app updates when you select **Check for updates**. You can run the slideshow offline.
+Choose photos from a connected USB drive or download the publisher’s **Internal Gallery**. Both sources work with **Turn on Screensaver Now** and the TV’s automatic screensaver.
 
-[Set up the TV](#set-up-the-tv) · [Use the menu](#use-the-main-menu) · [Update the TV](#update-the-tv-over-the-internet) · [Publish a version](#publish-a-new-version-as-the-owner) · [Troubleshooting](#troubleshooting)
+[Set up the TV](#set-up-the-tv) · [Use the menu](#use-the-main-menu) · [Configure Internal Gallery](#configure-internal-gallery) · [Update the app](#update-the-tv-over-the-internet) · [Publish a version](#publish-a-new-version-as-the-owner) · [Troubleshooting](#troubleshooting)
 
 ## Set up the TV
 
-1. Download **USB-Screensaver.apk** from the [latest official release](https://github.com/lukewallace/slideshow/releases/latest). An APK is the Android installation file.
-2. Copy the APK to a USB drive. Put your pictures in a simple folder such as `Photos`. The APK and pictures can be in different folders. The app scans accessible USB storage up to five levels deep.
-3. Plug the drive into the TV. Open the APK with the TV’s file manager and choose **Install**. If prompted, allow that file manager to install apps. Open USB Screensaver and grant the requested photo or storage permission.
-4. Choose **Turn on Screensaver Now** to check your pictures. For automatic playback, select **USB Screensaver** in the TV’s system screensaver settings and choose an idle delay if available. The settings path varies by TV.
-
-Keep the drive connected during playback. The app supports JPG, JPEG, PNG, BMP, WebP and GIF still images. Video playback is outside the scope of this photo slideshow. It shuffles the photos by default and loops when it reaches the end.
+1. Download **USB-Screensaver.apk** from the [latest official GitHub release](https://github.com/lukewallace/slideshow/releases/latest). Copy it to a USB drive and open it with the TV’s file manager. Choose **Install** and allow the file manager to install apps if Android asks.
+2. Open **Image Source**. For **USB** (the default), grant photo or storage access and keep the drive connected. The app scans accessible USB folders up to five levels deep. The pictures and APK can be in different folders.
+3. For **Internal Gallery**, connect the TV to the internet, choose **Internal Gallery**, and wait for the first download. Version 1.3.23 launched with 60 photos in a 40.6 MB download. The app saves the selection when the gallery is ready. Subsequent playback works offline with the USB drive removed.
+4. Select **Turn on Screensaver Now** to preview playback. For automatic playback, select **USB Screensaver** in Android TV’s system screensaver settings and choose an idle delay if your TV offers one.
 
 ## Use the main menu
 
-### Slideshow interval
+- **Turn on Screensaver Now** starts the full-screen slideshow using the saved source, interval, transition and brightness.
+- **Slideshow Interval** sets the time per photo. Choose 10 or 30 seconds, or 1, 2, 3, 5, 10 or 30 minutes. The default is 10 seconds.
+- **Slideshow effects → Brightness** adjusts the app menu and slideshow from 10% to 100% in 5-point steps. Focus the slider and press Left or Right. Each change saves immediately.
+- **Slideshow effects → Image Transition** offers **Crossfade** (the default, about 0.8 seconds) and **No Fade** for an immediate change.
+- **Image Source** switches between **USB** and **Internal Gallery**. A checkmark identifies the saved choice. Photos shuffle and loop during playback.
+- **Advanced settings → Check for updates** checks for a newer app version. The installed version appears below “2026” at the bottom of the main menu.
 
-Sets how long each photo stays on screen. Choose 10 seconds, 30 seconds, 1 minute, 2 minutes, 3 minutes, 5 minutes or 10 minutes. The default is 10 seconds. The TV’s idle delay is a separate system setting.
+Press OK on a menu button to open its submenu on the right. Press Left or Back to return one level. While the brightness slider has focus, Left lowers brightness. Use Back to leave it.
 
-### Slideshow Effect
+## Configure Internal Gallery
 
-**Crossfade** blends into the next photo over 0.8 seconds. **No fade** switches immediately. From version 1.3.6, Crossfade is the default whenever the user has not selected an effect. An explicit selection survives an ordinary update.
+### For viewers
 
-### Turn on Screensaver Now
+The publisher manages one shared collection for all TVs. To check for fresh photos now, select **Image Source → Internal Gallery** again. With a saved gallery, the menu returns immediately and the check runs in the background. Start the slideshow again after the download finishes to see the new collection.
 
-Opens the full-screen slideshow immediately with the same photos and preferences used for automatic playback.
+Starting a slideshow with Internal Gallery selected also triggers a background check if at least 24 hours have passed since the last check. The TV sends the saved ETag so the server can skip an unchanged download. If a refresh fails, the TV can keep playing its last complete gallery.
 
-### Check for updates
+### For the publisher
 
-Checks the latest published release when selected. The footer below “2026” shows the version currently installed on this TV.
+Replace one file in Firebase to change the photos on TVs running the gallery-enabled app. A gallery change requires no new APK or GitHub release.
+
+1. **Prepare the photos.** Choose 1 to 1,000 still images readable by Android. Supported extensions are JPG, JPEG, PNG, BMP, WebP and GIF. Use TV-sized copies to keep downloads small.
+2. **Create the archive.** On Windows, open the folder of prepared photos, select the image files themselves, then choose **Compress to ZIP file** or **Send to → Compressed (zipped) folder**. Name it exactly `gallery.zip`. Open the ZIP and confirm the photos are at its top level. Exclude folders, thumbnail databases, videos and other files. Keep both the ZIP and the combined extracted image data at or below 256 MiB.
+3. **Upload as the owner.** In project `slideshow-864f5`, open **Storage → Files** and select the root of `gs://slideshow-864f5.firebasestorage.app`. Choose **Upload file**, select `gallery.zip`, and confirm replacement of the existing object. Keep a local copy of the previous ZIP if you want to restore it. [Open Slideshow Storage](https://console.firebase.google.com/project/slideshow-864f5/storage)
+4. **Verify the upload.** Download the published ZIP from the same address used by the TV, open it and check the photos. Then reselect **Internal Gallery** on a connected TV and restart the slideshow after the refresh. [Download the live gallery](https://firebasestorage.googleapis.com/v0/b/slideshow-864f5.firebasestorage.app/o/gallery.zip?alt=media)
+
+The bucket uses Standard storage in US-EAST1 on the Blaze billing plan. Anyone with the gallery URL can download the photos. The deployed Firebase rules allow a public get only for `gallery.zip` and grant clients no listing or write access. Manage uploads using an authorized publisher account. The app reads the bucket name from `GALLERY_BUCKET` in `app/build.gradle.kts`. [Repository storage rules](https://github.com/lukewallace/slideshow/blob/main/release/gallery-storage.rules)
 
 ## Update the TV over the internet
 
-1. Connect the TV to the internet and select **Check for updates**. The app downloads the APK from the [official update address](https://github.com/lukewallace/slideshow/releases/latest/download/USB-Screensaver.apk) and checks its package, signing identity and Android version code.
-2. If a newer verified build is available, select **Install**. On the first update, Android may ask you to allow USB Screensaver to install apps. Grant that permission, return to the menu and select **Check for updates** again.
-3. Confirm the update in Android’s installer. Reopen the app and check the version below “2026”. Your interval and effect carry over.
+1. For the GitHub APK, open **Advanced settings → Check for updates** while online. The app checks the downloaded APK’s package, signing identity and Android version code.
+2. Select **Install** if a newer verified build is available. If Android asks for permission to install apps, grant it to USB Screensaver, return to the menu and check again.
+3. Confirm in Android’s installer. If the TV returns to its home screen, reopen USB Screensaver and check the version below “2026”. An ordinary update preserves your preferences.
 
-USB is only needed for your photos during normal use. For an app update, the TV can download the installation file directly. Users of the early test-signed builds need a one-time uninstall and fresh installation to switch to production signing. That migration resets app preferences and leaves the USB photos intact.
+Early test-signed builds require a one-time uninstall and fresh installation to switch to production signing. Uninstalling resets preferences and removes locally downloaded gallery photos. USB photos stay on the drive.
 
 ## Publish a new version as the owner
 
-**Azure signs the APK. GitHub hosts it. Android verifies it on the TV.** Making a source change on GitHub alone does not deliver an update. The TV checks the APK attached to the latest public release.
+1. Review and commit the app changes. Keep the application ID `com.usbscreensaver`. Set the display version and increase `versionCode` in `app/build.gradle.kts`. Version 1.3.23 uses code 34.
+2. Build the standalone release APK with `gradle :app:assembleRelease`. Sign the zip-aligned APK using `release/Sign-AzureApk.ps1` and verify it using `release/Verify-Apk.ps1`. The existing non-exportable signing key is held by Azure Key Vault. [Signing instructions](https://github.com/lukewallace/slideshow/blob/main/release/AZURE.md)
+3. Push the matching source commit. Create a GitHub release targeting it with the version tag, such as `v1.3.23`. Attach the signed APK with the exact asset name **USB-Screensaver.apk** and publish as the latest stable release.
+4. Download from the TV’s update address, compare its SHA-256 file hash with the signed local build and verify the production certificate. Then test **Check for updates** on a TV running the previous version. [TV update address](https://github.com/lukewallace/slideshow/releases/latest/download/USB-Screensaver.apk)
 
-1. **Prepare the source.** Make and review the change in the [slideshow repository](https://github.com/lukewallace/slideshow). In `app/build.gradle.kts`, set the new display version and increase `versionCode`. Version 1.3.6 uses code 17. Keep the application ID `com.usbscreensaver`.
-2. **Build.** Build a zip-aligned unsigned release APK from that source. The repository’s Gradle release task is `:app:assembleRelease`.
-3. **Sign and verify.** Sign in to Azure CLI as the authorized publisher. Use `release/Sign-AzureApk.ps1` with the existing vault `kv-slideshow-lw-sign` and certificate `slideshow-android-release`. The private key stays in Azure. The script checks the public fingerprint and verifies the resulting APK. Keep using the same certificate for future releases. [Signing instructions and prerequisites](https://github.com/lukewallace/slideshow/blob/main/release/AZURE.md).
-4. **Publish.** On GitHub, create a release tagged with the version, such as `v1.3.6`, targeting the matching source commit. Attach the signed APK with the exact filename **USB-Screensaver.apk**. Publish it as the latest stable release.
-5. **Verify delivery.** Download the file from the official update address above. Run `release/Verify-Apk.ps1` on that download and compare its SHA-256 file hash with the signed local APK. On a TV running the previous production version, select **Check for updates** and confirm the new footer version after installation.
-
-The production certificate’s public SHA-256 fingerprint is `68250a8bbced2cf24f169857de58328bf70f4e4d9003a585b1471b30699af3dc`. It identifies the signer across releases. Each new APK has its own file hash. Protect both the GitHub publisher account and the Azure accounts that can grant signing access.
+The production certificate SHA-256 fingerprint is `68250a8bbced2cf24f169857de58328bf70f4e4d9003a585b1471b30699af3dc`. For a future Google Play submission, build the Play bundle with `gradle -PplayDistribution=true :app:bundleRelease`. That variant also uses Firebase for the gallery and directs app update checks to Google Play.
 
 ## Troubleshooting
 
-### “No images found on USB” or new photos are missing
-
-Use the TV’s file manager to confirm it can open a JPG from the drive. Check the app’s photo permission, try a folder close to the USB root, then stop and restart the slideshow. It rescans when it starts.
-
-### The manual slideshow works, but the idle screensaver never starts
-
-Check the TV’s selected system screensaver and idle delay. The slideshow interval only controls photo changes.
-
-### “There is no published update available”
-
-Check that the latest public GitHub release has an attachment named exactly `USB-Screensaver.apk`. The app shows this message when GitHub cannot find the download.
-
-### “You already have the latest available version”
-
-The downloaded release offers no newer version for this TV. Check the footer to see the installed version.
-
-### A signing-certificate warning appears
-
-Keep the installed app in place. Verify the official download with the repository’s verification script. Version 1.3.3 could report a mismatch when a TV omitted certificate information. For that older updater, install a verified current production APK over the existing app by USB. If Android’s installer also reports a signature conflict, stop and identify the installed build before uninstalling.
+- **Gallery unavailable on the first download.** Check the TV’s internet connection and free internal storage, then select **Retry**. The publisher can test the live gallery link and check the ZIP name, contents, size and Firebase read rule.
+- **Old gallery photos still appear.** Reselect **Internal Gallery** while online, give the download time to finish, then stop and start the slideshow. A running slideshow keeps its current photo list.
+- **No images found on USB.** Select **USB**, confirm the file manager can open a JPG, check photo permission and place the photos near the drive’s root. Restart the slideshow to rescan.
+- **Manual playback works but the idle screensaver never starts.** Check Android TV’s selected system screensaver and idle delay.
+- **There is no published update available.** Confirm the latest GitHub release includes **USB-Screensaver.apk**. If the app reports that you already have the latest available version, check the version in the footer.
+- **Signing-certificate warning.** Keep the installed app in place while checking the official download with the verification script. For an older 1.3.3 updater that reports a mismatch, try installing a verified current production APK over it by USB. If Android also reports a signature conflict, identify the installed build before uninstalling.
 
 Designed by Lukasz Walaszczyk · 2026

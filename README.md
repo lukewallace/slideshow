@@ -1,8 +1,8 @@
 # USB Screensaver for Android TV
 
-Displays photos from USB storage. The settings screen controls timing and crossfade and can start the slideshow immediately.
+Display photos from a USB drive or download Internal Gallery from Firebase for offline playback. Adjust the interval, transition and brightness with the TV remote.
 
-[Read the user and publisher guide](docs/USB-Screensaver-Guide.md) for TV setup, updates, and publishing instructions.
+[Read the user and publisher guide](docs/USB-Screensaver-Guide.md) for TV setup and updates, or jump to [Internal Gallery configuration](docs/USB-Screensaver-Guide.md#configure-internal-gallery) to replace the shared photo collection.
 
 ## Builds and distribution
 
