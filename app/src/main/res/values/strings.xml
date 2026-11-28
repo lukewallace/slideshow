@@ -26,8 +26,8 @@
     <string name="check_updates">Check for updates</string>
     <string name="advanced_settings">Advanced settings</string>
     <string name="cancel">Cancel</string>
-    <string name="brightness_value">Brightness Â· %1$d%%</string>
-    <string name="checking_updates">Checking for updatesâ€¦</string>
+    <string name="brightness_value">Brightness &#x00B7; %1$d%%</string>
+    <string name="checking_updates">Checking for updates&#x2026;</string>
     <string name="image_source">Image Source</string>
     <string-array name="image_sources">
         <item>USB</item>
