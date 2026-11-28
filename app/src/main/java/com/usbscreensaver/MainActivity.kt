@@ -18,6 +18,7 @@ class MainActivity : Activity() {
     private lateinit var content: LinearLayout
     private var opener: Button? = null
     private var returnFromTransition: (() -> Unit)? = null
+    private var galleryRequest: GalleryRequest? = null
     private var updater: AppUpdate? = null
     private val prefs by lazy { getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
 
@@ -26,6 +27,7 @@ class MainActivity : Activity() {
         const val KEY_INTERVAL = "slide_interval"
         const val KEY_CROSSFADE = "crossfade_enabled"
         fun crossfadeEnabled(prefs: SharedPreferences) = prefs.getBoolean(KEY_CROSSFADE, true)
+        const val KEY_GALLERY = "internal_gallery"
         const val KEY_SHUFFLE = "shuffle_enabled"
         private val intervals = listOf(10, 30, 60, 120, 180, 300, 600, 1800)
 
@@ -48,10 +50,34 @@ class MainActivity : Activity() {
         }
 
         applyMenuBrightness(SlideBrightness.read(prefs))
+        findViewById<Button>(R.id.imageSource).setOnClickListener {
+            openPanel(it as Button, R.string.image_source)
+            addChoices(R.array.image_sources, if (prefs.getBoolean(KEY_GALLERY, false)) 1 else 0) { index ->
+                if (index == 0) {
+                    prefs.edit().putBoolean(KEY_GALLERY, false).apply()
+                    closePanel()
+                    requestUsbPermission()
+                } else {
+                    val request = GalleryRequest(this) {
+                        prefs.edit().putBoolean(KEY_GALLERY, true).apply()
+                        closePanel()
+                    }
+                    galleryRequest = request
+                    request.start()
+                }
+            }
+        }
         findViewById<Button>(R.id.advancedSettings).setOnClickListener {
             openPanel(it as Button, R.string.advanced_settings)
             option(getString(R.string.check_updates)) {
                 findViewById<TextView>(R.id.submenuHeading).setText(R.string.check_updates)
+                if (BuildConfig.PLAY_DISTRIBUTION) {
+                    val store = android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("market://details?id=" + packageName)).setPackage("com.android.vending")
+                    try { startActivity(store); closePanel() }
+                    catch (_: android.content.ActivityNotFoundException) { updatePrompt("Open Google Play to check for updates.") }
+                    return@option
+                }
                 val check = AppUpdate(this)
                 updater = check
                 updatePrompt(getString(R.string.checking_updates))
@@ -71,6 +97,10 @@ class MainActivity : Activity() {
             addBrightnessControls()
             option(getString(R.string.photo_transition)) { showTransitions() }
         }
+        if (!prefs.getBoolean(KEY_GALLERY, false)) requestUsbPermission()
+    }
+
+    private fun requestUsbPermission() {
         if (android.os.Build.VERSION.SDK_INT >= 23) {
             val permission = if (android.os.Build.VERSION.SDK_INT >= 33)
                 android.Manifest.permission.READ_MEDIA_IMAGES else android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -103,6 +133,8 @@ class MainActivity : Activity() {
         val button = opener ?: return
         opener = null
         returnFromTransition = null
+        galleryRequest?.close()
+        galleryRequest = null
         updater?.dismiss()
         updater = null
         panel.visibility = View.GONE
@@ -133,6 +165,8 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        galleryRequest?.close()
+        galleryRequest = null
         updater?.dismiss()
         super.onDestroy()
     }
@@ -206,7 +240,7 @@ class MainActivity : Activity() {
 
     private fun addChoices(options: Int, selected: Int, save: (Int) -> Unit) {
         resources.getStringArray(options).forEachIndexed { index, label ->
-            val choice = option(if (index == selected) "✓  $label" else label) { save(index) }
+            val choice = option(if (index == selected) "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ  $label" else label) { save(index) }
             if (index == selected) choice.requestFocus()
         }
     }

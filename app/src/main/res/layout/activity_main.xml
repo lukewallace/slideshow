@@ -43,6 +43,8 @@
                     android:text="@string/interval_label" />
                 <Button style="@style/MenuButton" android:id="@+id/effectButton"
                     android:text="@string/effect_label" />
+                <Button style="@style/MenuButton" android:id="@+id/imageSource"
+                    android:text="@string/image_source" />
                 <Button style="@style/MenuButton" android:id="@+id/advancedSettings"
                     android:text="@string/advanced_settings" />
                 <Space

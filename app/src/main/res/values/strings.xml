@@ -26,8 +26,14 @@
     <string name="check_updates">Check for updates</string>
     <string name="advanced_settings">Advanced settings</string>
     <string name="cancel">Cancel</string>
-    <string name="brightness_value">Brightness · %1$d%%</string>
-    <string name="checking_updates">Checking for updates…</string>
+    <string name="brightness_value">Brightness Â· %1$d%%</string>
+    <string name="checking_updates">Checking for updatesâ€¦</string>
+    <string name="image_source">Image Source</string>
+    <string-array name="image_sources">
+        <item>USB</item>
+        <item>Internal Gallery</item>
+    </string-array>
+    <string name="gallery_empty">Internal Gallery is empty or unavailable. Open Image Source to choose a source.</string>
 </resources>
 
 

@@ -17,7 +17,7 @@ internal class Slideshow(root: FrameLayout) {
     private val incoming = root.findViewById<ImageView>(R.id.incomingImage)
     private val noImagesLabel = root.findViewById<TextView>(R.id.noImagesLabel)
     private val handler = Handler(Looper.getMainLooper())
-    private var images: List<File> = emptyList()
+    private var images: List<() -> java.io.InputStream> = emptyList()
     private var currentIndex = 0
 
     private val slideRunnable = object : Runnable {
@@ -30,6 +30,7 @@ internal class Slideshow(root: FrameLayout) {
         val brightness = SlideBrightness.read(prefs)
         SlideBrightness.applyTo(imageView, brightness)
         SlideBrightness.applyTo(incoming, brightness)
+        if (prefs.getBoolean(MainActivity.KEY_GALLERY, false)) FirebaseGallery.refresh(imageView.context)
         loadImages()
         startSlideshow()
     }
@@ -40,19 +41,14 @@ internal class Slideshow(root: FrameLayout) {
         imageView.setImageDrawable(null)
     }
     private fun loadImages() {
-        val exts = setOf("jpg", "jpeg", "png", "bmp", "webp", "gif")
-        val result = mutableListOf<File>()
-
-        val paths = getUSBStoragePaths()
-        for (dir in paths) {
-            dir.walkTopDown().maxDepth(5).forEach { file ->
-                if (file.isFile && file.extension.lowercase() in exts) {
-                    result.add(file)
-                }
+        val internal = prefs.getBoolean(MainActivity.KEY_GALLERY, false)
+        images = if (internal) galleryPhotos(imageView.context) else {
+            getUSBStoragePaths().flatMap { dir ->
+                dir.walkTopDown().maxDepth(5).filter { it.isFile && isPhoto(it.name) }
+                    .map { file -> { file.inputStream() } }.toList()
             }
         }
-
-        images = result
+        noImagesLabel.setText(if (internal) R.string.gallery_empty else R.string.no_images)
         if (prefs.getBoolean(MainActivity.KEY_SHUFFLE, true)) {
             images = images.shuffled()
         }
@@ -95,13 +91,13 @@ internal class Slideshow(root: FrameLayout) {
         scheduleNext()
     }
 
-    private fun showImageBitmap(file: File) {
+    private fun showImageBitmap(open: () -> java.io.InputStream) {
         try {
             // Decode with target size to avoid OOM on 4K TVs
             val opts = BitmapFactory.Options().apply {
                 inJustDecodeBounds = true
             }
-            BitmapFactory.decodeFile(file.absolutePath, opts)
+            open().use { BitmapFactory.decodeStream(it, null, opts) }
 
             val targetWidth = 1920
             val targetHeight = 1080
@@ -116,7 +112,7 @@ internal class Slideshow(root: FrameLayout) {
                 inPreferredConfig = Bitmap.Config.RGB_565
             }
 
-            val bitmap = BitmapFactory.decodeFile(file.absolutePath, decodeOpts)
+            val bitmap = open().use { BitmapFactory.decodeStream(it, null, decodeOpts) }
             if (bitmap != null) {
                 displayBitmap(bitmap)
             }

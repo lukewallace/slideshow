@@ -3,7 +3,12 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val playDistribution = providers.gradleProperty("playDistribution").orNull == "true"
+
 android {
+    buildFeatures { buildConfig = true }
+    sourceSets["release"].manifest.srcFile(if (playDistribution) "src/play/AndroidManifest.xml" else "src/direct/AndroidManifest.xml")
+    sourceSets["debug"].manifest.srcFile(if (playDistribution) "src/play/AndroidManifest.xml" else "src/direct/AndroidManifest.xml")
     namespace = "com.usbscreensaver"
     compileSdk = 34
 
@@ -11,8 +16,11 @@ android {
         applicationId = "com.usbscreensaver"
         minSdk = 21
         targetSdk = 34
-        versionCode = 31
-        versionName = "1.3.20"
+        versionCode = 33
+        versionName = "1.3.22"
+        buildConfigField("String", "GALLERY_BUCKET", "\"slideshow-864f5.firebasestorage.app\"")
+        buildConfigField("boolean", "PLAY_DISTRIBUTION", playDistribution.toString())
+
     }
 
     buildTypes {

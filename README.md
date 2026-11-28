@@ -13,3 +13,11 @@ The repository contains no production signing credentials. The owner authorizes 
 Keep owner access protected with a passkey or security key. Give other GitHub users read access only. Review installed GitHub Apps, deploy keys and automation tokens for release or contents-write access. A draft or tag alone does not sign an APK. Android checks the signing identity when installing updates.
 
 The original personal builds used a local test signing identity. Moving to a new production certificate ordinarily requires a one-time reinstall for those users. Later production updates must use the same signing identity and increasing version codes.
+
+## Image Source and gallery delivery
+
+USB is the default. Both the standalone APK and the Play bundle download Internal Gallery from Cloud Storage for Firebase. Select Internal Gallery for the initial download or to check for changes. The TV keeps a complete local copy for offline use and checks again when the slideshow starts, at most once a day. A refresh becomes visible the next time the slideshow opens.
+
+Upload a ZIP of photos to the root of the Slideshow Firebase Storage bucket as `gallery.zip`. Put photos directly inside the ZIP. An update replaces this one object and needs no new app release. The TV uses the HTTP ETag to skip an unchanged download. For a new bucket, the rules in `release/gallery-storage.rules` allow anyone to download only the published gallery. Manage uploads in the Firebase console with the owner account.
+
+Build the standalone APK with `gradle :app:assembleRelease` and the Play bundle with `gradle -PplayDistribution=true :app:bundleRelease`.
